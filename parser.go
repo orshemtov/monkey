@@ -16,7 +16,7 @@ const (
 	CALL        // myFunction(X)
 )
 
-var precendences = map[TokenType]int{
+var precedences = map[TokenType]int{
 	EQ:       EQUALS,
 	NOT_EQ:   EQUALS,
 	LT:       LESSGREATER,
@@ -25,6 +25,7 @@ var precendences = map[TokenType]int{
 	MINUS:    SUM,
 	SLASH:    PRODUCT,
 	ASTERISK: PRODUCT,
+	LPAREN:   CALL,
 }
 
 type Parser struct {
@@ -62,6 +63,7 @@ func NewParser(l *Lexer) *Parser {
 	p.registerInfix(NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(LT, p.parseInfixExpression)
 	p.registerInfix(GT, p.parseInfixExpression)
+	p.registerInfix(LPAREN, p.parseCallExpression)
 
 	// Read two tokens, so curToken and peekToken are both set
 	p.nextToken()
@@ -143,8 +145,9 @@ func (p *Parser) parseReturnStatement() *ReturnStatement {
 
 	p.nextToken()
 
-	// TODO: We're skipping the expressions until we encounter a semicolon
-	for !p.curTokenIs(SEMICOLON) {
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -164,8 +167,11 @@ func (p *Parser) parseLetStatement() *LetStatement {
 		return nil
 	}
 
-	// TODO: Skipping expressions until we encounter a semicolon
-	for !p.curTokenIs(SEMICOLON) {
+	p.nextToken()
+
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -181,14 +187,14 @@ func (p *Parser) peekTokenIs(t TokenType) bool {
 }
 
 func (p *Parser) peekPrecedence() int {
-	if p, ok := precendences[p.peekToken.Type]; ok {
+	if p, ok := precedences[p.peekToken.Type]; ok {
 		return p
 	}
 	return LOWEST
 }
 
 func (p *Parser) curPrecedence() int {
-	if p, ok := precendences[p.curToken.Type]; ok {
+	if p, ok := precedences[p.curToken.Type]; ok {
 		return p
 	}
 	return LOWEST
@@ -374,4 +380,34 @@ func (p *Parser) parseFunctionParameters() []*Identifier {
 	}
 
 	return identifiers
+}
+
+func (p *Parser) parseCallExpression(function Expression) Expression {
+	exp := &CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+func (p *Parser) parseCallArguments() []Expression {
+	args := []Expression{}
+
+	if p.peekTokenIs(RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(RPAREN) {
+		return nil
+	}
+
+	return args
 }
