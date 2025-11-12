@@ -274,7 +274,7 @@ func (p *Parser) parseInfixExpression(left Expression) Expression {
 }
 
 func (p *Parser) parseBoolean() Expression {
-	return &Boolean{Token: p.curToken, Value: p.curTokenIs(TRUE)}
+	return &BooleanExpression{Token: p.curToken, Value: p.curTokenIs(TRUE)}
 }
 
 func (p *Parser) parseGroupedExpression() Expression {
