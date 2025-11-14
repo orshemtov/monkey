@@ -69,20 +69,24 @@ func Eval(node Node, env *Environment) Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *StringLiteral:
+		return &String{Value: node.Value}
 	}
 
 	return nil
 }
 
 func applyFunction(fn Object, args []Object) Object {
-	function, ok := fn.(*Function)
-	if !ok {
+	switch fn := fn.(type) {
+	case *Function:
+		extendedEnv := extendFunctionEnv(fn, args)
+		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+	case *Builtin:
+		return fn.Fn(args...)
+	default:
 		return newError("not a function: %s", fn.Type())
 	}
-
-	extendedEnv := extendFunctionEnv(function, args)
-	evaluated := Eval(function.Body, extendedEnv)
-	return unwrapReturnValue(evaluated)
 }
 
 func unwrapReturnValue(obj Object) Object {
@@ -176,6 +180,8 @@ func evalInfixExpression(operator string, left, right Object) Object {
 		return nativeBoolToBooleanObject(left != right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+	case left.Type() == STRING_OBJ && right.Type() == STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -243,11 +249,26 @@ func evalIfExpression(ie *IfExpression, env *Environment) Object {
 }
 
 func evalIdentifier(node *Identifier, env *Environment) Object {
-	val, ok := env.Get(node.Value)
-	if !ok {
-		return newError("identifier not found: %s", node.Value)
+	if val, ok := env.Get(node.Value); ok {
+		return val
 	}
-	return val
+
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: %s", node.Value)
+}
+
+func evalStringInfixExpression(operator string, left, right Object) Object {
+	switch operator {
+	case "+":
+		leftVal := left.(*String).Value
+		rightVal := right.(*String).Value
+		return &String{Value: leftVal + rightVal}
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
 }
 
 func isTruthy(obj Object) bool {

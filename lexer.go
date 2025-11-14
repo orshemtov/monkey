@@ -59,6 +59,9 @@ func (l *Lexer) NextToken() Token {
 		token = newToken(LBRACE, l.ch)
 	case '}':
 		token = newToken(RBRACE, l.ch)
+	case '"':
+		token.Type = STRING
+		token.Literal = l.readString()
 	case 0:
 		token.Literal = ""
 		token.Type = EOF
@@ -134,4 +137,15 @@ func LookupIdent(ident string) TokenType {
 		return token
 	}
 	return IDENT
+}
+
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return l.input[position:l.position]
 }

@@ -2,6 +2,52 @@ package main
 
 import "testing"
 
+func testEval(input string) Object {
+	l := NewLexer(input)
+	p := NewParser(l)
+	program := p.ParseProgram()
+	env := NewEnvironment()
+	return Eval(program, env)
+}
+
+func testIntegerObject(t *testing.T, obj Object, expected int64) bool {
+	result, ok := obj.(*Integer)
+	if !ok {
+		t.Errorf("object is not Integer. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("object has wrong value. got=%d, want=%d", result.Value, expected)
+		return false
+	}
+
+	return true
+}
+
+func testBooleanObject(t *testing.T, obj Object, expected bool) bool {
+	result, ok := obj.(*Boolean)
+	if !ok {
+		t.Errorf("object is not Boolean. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("object has wrong value. got=%t, want=%t", result.Value, expected)
+		return false
+	}
+
+	return true
+}
+
+func testNullObject(t *testing.T, obj Object) bool {
+	if obj != O_NULL {
+		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
+		return false
+	}
+	return true
+}
+
 func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -172,6 +218,10 @@ if (10 > 1) {
 			"foobar",
 			"identifier not found: foobar",
 		},
+		{
+			`"Hello" - "World"`,
+			"unknown operator: STRING - STRING",
+		},
 	}
 
 	for _, tt := range tests {
@@ -259,48 +309,62 @@ addTwo(2);`
 	testIntegerObject(t, testEval(input), 4)
 }
 
-func testEval(input string) Object {
-	l := NewLexer(input)
-	p := NewParser(l)
-	program := p.ParseProgram()
-	env := NewEnvironment()
-	return Eval(program, env)
-}
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello World!"`
 
-func testIntegerObject(t *testing.T, obj Object, expected int64) bool {
-	result, ok := obj.(*Integer)
+	evaluated := testEval(input)
+	str, ok := evaluated.(*String)
 	if !ok {
-		t.Errorf("object is not Integer. got=%T (%+v)", obj, obj)
-		return false
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	if result.Value != expected {
-		t.Errorf("object has wrong value. got=%d, want=%d", result.Value, expected)
-		return false
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
 	}
-
-	return true
 }
 
-func testBooleanObject(t *testing.T, obj Object, expected bool) bool {
-	result, ok := obj.(*Boolean)
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + " " + "World!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*String)
 	if !ok {
-		t.Errorf("object is not Boolean. got=%T (%+v)", obj, obj)
-		return false
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	if result.Value != expected {
-		t.Errorf("object has wrong value. got=%t, want=%t", result.Value, expected)
-		return false
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
 	}
-
-	return true
 }
 
-func testNullObject(t *testing.T, obj Object) bool {
-	if obj != O_NULL {
-		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
-		return false
+func TestBuiltinFunctions(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected any
+	}{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world")`, 11},
+		{`len(1)`, "argument to `len` not supported, got INTEGER"},
+		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
 	}
-	return true
+	for _, tC := range testCases {
+		t.Run(tC.input, func(t *testing.T) {
+			evaluated := testEval(tC.input)
+
+			switch expected := tC.expected.(type) {
+			case int:
+				testIntegerObject(t, evaluated, int64(expected))
+			case string:
+				errObj, ok := evaluated.(*Error)
+				if !ok {
+					t.Errorf("object is not Error. got=%T (%+v)", evaluated, evaluated)
+					return
+				}
+				if errObj.Message != expected {
+					t.Errorf("wrong error message. expected=%q, got=%q", expected, errObj.Message)
+				}
+			}
+		})
+	}
 }
