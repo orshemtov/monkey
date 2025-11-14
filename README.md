@@ -6,6 +6,7 @@
 - Boolean
 - Null
 - String
+- Array
 
 ## Features
 
@@ -17,5 +18,11 @@
 - Higher-order functions
 - Closures
 - String concatenation
+- Array literals
+- Array indexing
 - Built-in functions
   - `len`
+  - `first`
+  - `last`
+  - `rest`
+  - `push`
