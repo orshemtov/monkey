@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 var (
 	O_NULL  = &Null{}
@@ -87,6 +89,8 @@ func Eval(node Node, env *Environment) Object {
 			return index
 		}
 		return evalIndexExpression(left, index)
+	case *HashLiteral:
+		return evalHashLiteral(node, env)
 	}
 
 	return nil
@@ -306,6 +310,32 @@ func evalArrayIndexExpression(array, index Object) Object {
 	}
 
 	return arrayObject.Elements[idx]
+}
+
+func evalHashLiteral(node *HashLiteral, env *Environment) Object {
+	pairs := make(map[HashKey]HashPair)
+
+	for keyNode, valueNode := range node.Pairs {
+		key := Eval(keyNode, env)
+		if isError(key) {
+			return key
+		}
+
+		hashKey, ok := key.(Hashable)
+		if !ok {
+			return newError("unusable as hash key: %s", key.Type())
+		}
+
+		value := Eval(valueNode, env)
+		if isError(value) {
+			return value
+		}
+
+		hashed := hashKey.HashKey()
+		pairs[hashed] = HashPair{Key: key, Value: value}
+	}
+
+	return &Hash{Pairs: pairs}
 }
 
 func isTruthy(obj Object) bool {

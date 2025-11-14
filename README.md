@@ -26,3 +26,11 @@
   - `last`
   - `rest`
   - `push`
+
+## Components
+
+- Tokens
+- Lexer
+- Parser
+- AST (Abstract Syntax Tree)
+- Evaluator
