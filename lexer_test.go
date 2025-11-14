@@ -26,6 +26,7 @@ if (5 < 10) {
 10 != 9;
 "foobar"
 "foo bar"
+[1, 2];
 `
 	lexer := NewLexer(input)
 
@@ -107,6 +108,12 @@ if (5 < 10) {
 		{SEMICOLON, ";"},
 		{STRING, "foobar"},
 		{STRING, "foo bar"},
+		{LBRACKET, "["},
+		{INT, "1"},
+		{COMMA, ","},
+		{INT, "2"},
+		{RBRACKET, "]"},
+		{SEMICOLON, ";"},
 		{EOF, ""},
 	}
 	for i, tC := range testCases {
