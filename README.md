@@ -7,6 +7,7 @@
 - Null
 - String
 - Array
+- Hash
 
 ## Features
 
@@ -20,12 +21,15 @@
 - String concatenation
 - Array literals
 - Array indexing
+- Hash literals
+- Hash indexing
 - Built-in functions
   - `len`
   - `first`
   - `last`
   - `rest`
   - `push`
+  - `print`
 
 ## Components
 

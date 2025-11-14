@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 var builtins = map[string]*Builtin{
 	"len": {
 		Fn: func(args ...Object) Object {
@@ -93,6 +95,15 @@ var builtins = map[string]*Builtin{
 			newElements[length] = args[1]
 
 			return &Array{Elements: newElements}
+		},
+	},
+	"print": {
+		Fn: func(args ...Object) Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+
+			return O_NULL
 		},
 	},
 }
