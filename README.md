@@ -1,5 +1,11 @@
 # README
 
+The Monkey programming language.
+
+Implemented as part of the book "Writing An Interpreter In Go" by Thorsten Ball.
+
+![Monkey Demo](demo.gif)
+
 ## Data types
 
 - Integer
@@ -30,11 +36,3 @@
   - `rest`
   - `push`
   - `print`
-
-## Components
-
-- Tokens
-- Lexer
-- Parser
-- AST (Abstract Syntax Tree)
-- Evaluator
