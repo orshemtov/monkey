@@ -55,9 +55,63 @@ func Eval(node Node, env *Environment) Object {
 		env.Set(node.Name.Value, val)
 	case *Identifier:
 		return evalIdentifier(node, env)
+	case *FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &Function{Parameters: params, Body: body, Env: env}
+	case *CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+		return applyFunction(function, args)
 	}
 
 	return nil
+}
+
+func applyFunction(fn Object, args []Object) Object {
+	function, ok := fn.(*Function)
+	if !ok {
+		return newError("not a function: %s", fn.Type())
+	}
+
+	extendedEnv := extendFunctionEnv(function, args)
+	evaluated := Eval(function.Body, extendedEnv)
+	return unwrapReturnValue(evaluated)
+}
+
+func unwrapReturnValue(obj Object) Object {
+	if returnValue, ok := obj.(*ReturnValue); ok {
+		return returnValue.Value
+	}
+	return obj
+}
+
+func extendFunctionEnv(function *Function, args []Object) *Environment {
+	env := NewEnclosedEnvironment(function.Env)
+	for paramIdx, param := range function.Parameters {
+		env.Set(param.Value, args[paramIdx])
+	}
+	return env
+}
+
+func evalExpressions(exps []Expression, env *Environment) []Object {
+	var result []Object
+
+	for _, e := range exps {
+		evaluated := Eval(e, env)
+		if isError(evaluated) {
+			return []Object{evaluated}
+		}
+		result = append(result, evaluated)
+	}
+
+	return result
 }
 
 func evalProgram(program *Program, env *Environment) Object {
