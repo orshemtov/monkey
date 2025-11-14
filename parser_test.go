@@ -114,26 +114,28 @@ func TestLetStatements(t *testing.T) {
 		{"let foobar = y;", "foobar", "y"},
 	}
 
-	for _, tt := range tests {
-		l := NewLexer(tt.input)
-		p := NewParser(l)
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
+	for _, tC := range tests {
+		t.Run(tC.input, func(t *testing.T) {
+			l := NewLexer(tC.input)
+			p := NewParser(l)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
 
-		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements does not contain 1 statements. got=%d",
-				len(program.Statements))
-		}
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements does not contain 1 statements. got=%d",
+					len(program.Statements))
+			}
 
-		stmt := program.Statements[0]
-		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
-			return
-		}
-		val := stmt.(*LetStatement).Value
+			stmt := program.Statements[0]
+			if !testLetStatement(t, stmt, tC.expectedIdentifier) {
+				return
+			}
+			val := stmt.(*LetStatement).Value
 
-		if !testLiteralExpression(t, val, tt.expectedValue) {
-			return
-		}
+			if !testLiteralExpression(t, val, tC.expectedValue) {
+				return
+			}
+		})
 	}
 }
 
@@ -463,30 +465,32 @@ func TestBooleanExpression(t *testing.T) {
 	}
 
 	for _, tC := range tests {
-		l := NewLexer(tC.input)
-		p := NewParser(l)
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
+		t.Run(tC.input, func(t *testing.T) {
+			l := NewLexer(tC.input)
+			p := NewParser(l)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
 
-		if len(program.Statements) != 1 {
-			t.Fatalf("program has not enough statements. got=%d",
-				len(program.Statements))
-		}
+			if len(program.Statements) != 1 {
+				t.Fatalf("program has not enough statements. got=%d",
+					len(program.Statements))
+			}
 
-		stmt, ok := program.Statements[0].(*ExpressionStatement)
-		if !ok {
-			t.Fatalf("program.Statements[0] is not ExpressionStatement. got=%T",
-				program.Statements[0])
-		}
+			stmt, ok := program.Statements[0].(*ExpressionStatement)
+			if !ok {
+				t.Fatalf("program.Statements[0] is not ExpressionStatement. got=%T",
+					program.Statements[0])
+			}
 
-		boolean, ok := stmt.Expression.(*BooleanExpression)
-		if !ok {
-			t.Fatalf("exp not *Boolean. got=%T", stmt.Expression)
-		}
-		if boolean.Value != tC.expectedBoolean {
-			t.Errorf("boolean.Value not %t. got=%t", tC.expectedBoolean,
-				boolean.Value)
-		}
+			boolean, ok := stmt.Expression.(*BooleanExpression)
+			if !ok {
+				t.Fatalf("exp not *Boolean. got=%T", stmt.Expression)
+			}
+			if boolean.Value != tC.expectedBoolean {
+				t.Errorf("boolean.Value not %t. got=%t", tC.expectedBoolean,
+					boolean.Value)
+			}
+		})
 	}
 }
 
@@ -650,23 +654,25 @@ func TestFunctionParameterParsing(t *testing.T) {
 		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
 	}
 
-	for _, tt := range tests {
-		l := NewLexer(tt.input)
-		p := NewParser(l)
-		program := p.ParseProgram()
-		checkParserErrors(t, p)
+	for _, tC := range tests {
+		t.Run(tC.input, func(t *testing.T) {
+			l := NewLexer(tC.input)
+			p := NewParser(l)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
 
-		stmt := program.Statements[0].(*ExpressionStatement)
-		function := stmt.Expression.(*FunctionLiteral)
+			stmt := program.Statements[0].(*ExpressionStatement)
+			function := stmt.Expression.(*FunctionLiteral)
 
-		if len(function.Parameters) != len(tt.expectedParams) {
-			t.Errorf("length parameters wrong. want %d, got=%d\n",
-				len(tt.expectedParams), len(function.Parameters))
-		}
+			if len(function.Parameters) != len(tC.expectedParams) {
+				t.Errorf("length parameters wrong. want %d, got=%d\n",
+					len(tC.expectedParams), len(function.Parameters))
+			}
 
-		for i, ident := range tt.expectedParams {
-			testLiteralExpression(t, function.Parameters[i], ident)
-		}
+			for i, ident := range tC.expectedParams {
+				testLiteralExpression(t, function.Parameters[i], ident)
+			}
+		})
 	}
 }
 
