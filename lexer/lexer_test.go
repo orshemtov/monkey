@@ -33,7 +33,7 @@ if (5 < 10) {
 [1, 2];
 {"foo": "bar"}
 `
-	lexer := NewLexer(input)
+	lexer := New(input)
 
 	testCases := []struct {
 		expectedType    token.TokenType
