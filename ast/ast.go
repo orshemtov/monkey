@@ -1,8 +1,10 @@
-package main
+package ast
 
 import (
 	"bytes"
 	"strings"
+
+	"monkey/token"
 )
 
 type Node interface {
@@ -41,7 +43,7 @@ func (p *Program) String() string {
 }
 
 type Identifier struct {
-	Token Token
+	Token token.Token
 	Value string
 }
 
@@ -50,7 +52,7 @@ func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
 func (i *Identifier) String() string       { return i.Value }
 
 type LetStatement struct {
-	Token Token // The LET token
+	Token token.Token // The LET token
 	Name  *Identifier
 	Value Expression
 }
@@ -75,7 +77,7 @@ func (ls *LetStatement) String() string {
 }
 
 type ReturnStatement struct {
-	Token       Token // The RETURN token
+	Token       token.Token // The RETURN token
 	ReturnValue Expression
 }
 
@@ -97,7 +99,7 @@ func (rs *ReturnStatement) String() string {
 }
 
 type ExpressionStatement struct {
-	Token      Token // The first token of the expression
+	Token      token.Token // The first token of the expression
 	Expression Expression
 }
 
@@ -112,7 +114,7 @@ func (es *ExpressionStatement) String() string {
 }
 
 type IntegerLiteral struct {
-	Token Token
+	Token token.Token
 	Value int64
 }
 
@@ -121,7 +123,7 @@ func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
 type PrefixExpression struct {
-	Token    Token // The preifx token, e.g. !
+	Token    token.Token // The preifx token, e.g. !
 	Operator string
 	Right    Expression
 }
@@ -140,7 +142,7 @@ func (pe *PrefixExpression) String() string {
 }
 
 type InfixExpression struct {
-	Token    Token // The operator token, e.g. +
+	Token    token.Token // The operator token, e.g. +
 	Left     Expression
 	Operator string
 	Right    Expression
@@ -161,7 +163,7 @@ func (oe *InfixExpression) String() string {
 }
 
 type BooleanExpression struct {
-	Token Token
+	Token token.Token
 	Value bool
 }
 
@@ -170,7 +172,7 @@ func (be *BooleanExpression) TokenLiteral() string { return be.Token.Literal }
 func (be *BooleanExpression) String() string       { return be.Token.Literal }
 
 type IfExpression struct {
-	Token       Token // The 'if' token
+	Token       token.Token // The 'if' token
 	Condition   Expression
 	Consequence *BlockStatement
 	Alternative *BlockStatement
@@ -195,7 +197,7 @@ func (ie *IfExpression) String() string {
 }
 
 type BlockStatement struct {
-	Token      Token // The { token
+	Token      token.Token // The { token
 	Statements []Statement
 }
 
@@ -212,7 +214,7 @@ func (bs *BlockStatement) String() string {
 }
 
 type FunctionLiteral struct {
-	Token      Token // the 'fn' token
+	Token      token.Token // the 'fn' token
 	Parameters []*Identifier
 	Body       *BlockStatement
 }
@@ -237,8 +239,8 @@ func (fl *FunctionLiteral) String() string {
 }
 
 type CallExpression struct {
-	Token     Token      // The '(' token
-	Function  Expression // Identifier or FunctionLiteral
+	Token     token.Token // The '(' token
+	Function  Expression  // Identifier or FunctionLiteral
 	Arguments []Expression
 }
 
@@ -261,7 +263,7 @@ func (ce *CallExpression) String() string {
 }
 
 type StringLiteral struct {
-	Token Token
+	Token token.Token
 	Value string
 }
 
@@ -270,7 +272,7 @@ func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
 func (sl *StringLiteral) String() string       { return sl.Token.Literal }
 
 type ArrayLiteral struct {
-	Token    Token
+	Token    token.Token
 	Elements []Expression
 }
 
@@ -292,7 +294,7 @@ func (al *ArrayLiteral) String() string {
 }
 
 type IndexExpression struct {
-	Token Token // The [ token
+	Token token.Token // The [ token
 	Left  Expression
 	Index Expression
 }
@@ -312,7 +314,7 @@ func (ie *IndexExpression) String() string {
 }
 
 type HashLiteral struct {
-	Token Token // The { token
+	Token token.Token // The { token
 	Pairs map[Expression]Expression
 }
 

@@ -4,7 +4,7 @@ The Monkey programming language.
 
 Implemented as part of the book "Writing An Interpreter In Go" by Thorsten Ball.
 
-![Monkey Demo](demo.gif)
+![Monkey Demo](.github/demo.gif)
 
 ## Data types
 

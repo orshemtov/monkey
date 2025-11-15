@@ -1,4 +1,4 @@
-package main
+package object
 
 type Environment struct {
 	store map[string]Object

@@ -9,6 +9,6 @@ run:
 
 record: build
 	vhs out/demo.tape
-	cp out/demo.gif demo.gif
+	cp out/demo.gif .github/demo.gif
 
 .PHONY: build test run record 

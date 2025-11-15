@@ -1,17 +1,23 @@
-package main
+package eval
 
-import "testing"
+import (
+	"testing"
 
-func testEval(input string) Object {
-	l := NewLexer(input)
-	p := NewParser(l)
+	"monkey/lexer"
+	"monkey/object"
+	"monkey/parser"
+)
+
+func testEval(input string) object.Object {
+	l := lexer.NewLexer(input)
+	p := parser.NewParser(l)
 	program := p.ParseProgram()
-	env := NewEnvironment()
+	env := object.NewEnvironment()
 	return Eval(program, env)
 }
 
-func testIntegerObject(t *testing.T, obj Object, expected int64) bool {
-	result, ok := obj.(*Integer)
+func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
+	result, ok := obj.(*object.Integer)
 	if !ok {
 		t.Errorf("object is not Integer. got=%T (%+v)", obj, obj)
 		return false
@@ -25,8 +31,8 @@ func testIntegerObject(t *testing.T, obj Object, expected int64) bool {
 	return true
 }
 
-func testBooleanObject(t *testing.T, obj Object, expected bool) bool {
-	result, ok := obj.(*Boolean)
+func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
+	result, ok := obj.(*object.Boolean)
 	if !ok {
 		t.Errorf("object is not Boolean. got=%T (%+v)", obj, obj)
 		return false
@@ -40,7 +46,7 @@ func testBooleanObject(t *testing.T, obj Object, expected bool) bool {
 	return true
 }
 
-func testNullObject(t *testing.T, obj Object) bool {
+func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != O_NULL {
 		t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
 		return false
@@ -238,7 +244,7 @@ if (10 > 1) {
 		t.Run(tC.input, func(t *testing.T) {
 			evaluated := testEval(tC.input)
 
-			errObj, ok := evaluated.(*Error)
+			errObj, ok := evaluated.(*object.Error)
 			if !ok {
 				t.Errorf("no error object returned. got=%T(%+v)", evaluated, evaluated)
 				return
@@ -273,7 +279,7 @@ func TestFunctionObject(t *testing.T) {
 	input := "fn(x) { x + 2; };"
 
 	evaluated := testEval(input)
-	fn, ok := evaluated.(*Function)
+	fn, ok := evaluated.(*object.Function)
 	if !ok {
 		t.Fatalf("object is not Function. got=%T (%+v)", evaluated, evaluated)
 	}
@@ -329,7 +335,7 @@ func TestStringLiteral(t *testing.T) {
 	input := `"Hello World!"`
 
 	evaluated := testEval(input)
-	str, ok := evaluated.(*String)
+	str, ok := evaluated.(*object.String)
 	if !ok {
 		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
 	}
@@ -343,7 +349,7 @@ func TestStringConcatenation(t *testing.T) {
 	input := `"Hello" + " " + "World!"`
 
 	evaluated := testEval(input)
-	str, ok := evaluated.(*String)
+	str, ok := evaluated.(*object.String)
 	if !ok {
 		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
 	}
@@ -385,7 +391,7 @@ func TestBuiltinFunctions(t *testing.T) {
 			case int:
 				testIntegerObject(t, evaluated, int64(expected))
 			case string:
-				errObj, ok := evaluated.(*Error)
+				errObj, ok := evaluated.(*object.Error)
 				if !ok {
 					t.Errorf("object is not Error. got=%T (%+v)", evaluated, evaluated)
 					return
@@ -395,7 +401,7 @@ func TestBuiltinFunctions(t *testing.T) {
 				}
 
 			case []int:
-				array, ok := evaluated.(*Array)
+				array, ok := evaluated.(*object.Array)
 				if !ok {
 					t.Errorf("obj not Array. got=%T (%+v)", evaluated, evaluated)
 					return
@@ -419,7 +425,7 @@ func TestArrayLiterals(t *testing.T) {
 	input := "[1, 2 * 2, 3 + 3]"
 
 	evaluated := testEval(input)
-	result, ok := evaluated.(*Array)
+	result, ok := evaluated.(*object.Array)
 	if !ok {
 		t.Fatalf("object is not Array. got=%T (%+v)", evaluated, evaluated)
 	}
@@ -506,18 +512,18 @@ func TestHashLiterals(t *testing.T) {
 	}`
 
 	evaluated := testEval(input)
-	result, ok := evaluated.(*Hash)
+	result, ok := evaluated.(*object.Hash)
 	if !ok {
 		t.Fatalf("Eval didn't return Hash. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	expected := map[HashKey]int64{
-		(&String{Value: "one"}).HashKey():   1,
-		(&String{Value: "two"}).HashKey():   2,
-		(&String{Value: "three"}).HashKey(): 3,
-		(&Integer{Value: 4}).HashKey():      4,
-		O_TRUE.HashKey():                    5,
-		O_FALSE.HashKey():                   6,
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		O_TRUE.HashKey():                           5,
+		O_FALSE.HashKey():                          6,
 	}
 
 	if len(result.Pairs) != len(expected) {

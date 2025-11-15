@@ -1,4 +1,16 @@
-package main
+package lexer
+
+import "monkey/token"
+
+var keywords = map[string]token.TokenType{
+	"fn":     token.FUNCTION,
+	"let":    token.LET,
+	"true":   token.TRUE,
+	"false":  token.FALSE,
+	"if":     token.IF,
+	"else":   token.ELSE,
+	"return": token.RETURN,
+}
 
 type Lexer struct {
 	input        string
@@ -13,8 +25,8 @@ func NewLexer(input string) *Lexer {
 	return l
 }
 
-func (l *Lexer) NextToken() Token {
-	var token Token
+func (l *Lexer) NextToken() token.Token {
+	var tok token.Token
 
 	l.skipWhitespace()
 
@@ -23,71 +35,71 @@ func (l *Lexer) NextToken() Token {
 		if l.peakChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			token = Token{Type: EQ, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.EQ, Literal: string(ch) + string(l.ch)}
 		} else {
-			token = newToken(ASSIGN, l.ch)
+			tok = newToken(token.ASSIGN, l.ch)
 		}
 	case '+':
-		token = newToken(PLUS, l.ch)
+		tok = newToken(token.PLUS, l.ch)
 	case '-':
-		token = newToken(MINUS, l.ch)
+		tok = newToken(token.MINUS, l.ch)
 	case '!':
 		if l.peakChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			token = Token{Type: NOT_EQ, Literal: string(ch) + string(l.ch)}
+			tok = token.Token{Type: token.NOT_EQ, Literal: string(ch) + string(l.ch)}
 		} else {
-			token = newToken(BANG, l.ch)
+			tok = newToken(token.BANG, l.ch)
 		}
 	case '/':
-		token = newToken(SLASH, l.ch)
+		tok = newToken(token.SLASH, l.ch)
 	case '*':
-		token = newToken(ASTERISK, l.ch)
+		tok = newToken(token.ASTERISK, l.ch)
 	case '<':
-		token = newToken(LT, l.ch)
+		tok = newToken(token.LT, l.ch)
 	case '>':
-		token = newToken(GT, l.ch)
+		tok = newToken(token.GT, l.ch)
 	case ';':
-		token = newToken(SEMICOLON, l.ch)
+		tok = newToken(token.SEMICOLON, l.ch)
 	case '(':
-		token = newToken(LPAREN, l.ch)
+		tok = newToken(token.LPAREN, l.ch)
 	case ')':
-		token = newToken(RPAREN, l.ch)
+		tok = newToken(token.RPAREN, l.ch)
 	case ',':
-		token = newToken(COMMA, l.ch)
+		tok = newToken(token.COMMA, l.ch)
 	case '{':
-		token = newToken(LBRACE, l.ch)
+		tok = newToken(token.LBRACE, l.ch)
 	case '}':
-		token = newToken(RBRACE, l.ch)
+		tok = newToken(token.RBRACE, l.ch)
 	case '"':
-		token.Type = STRING
-		token.Literal = l.readString()
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	case '[':
-		token = newToken(LBRACKET, l.ch)
+		tok = newToken(token.LBRACKET, l.ch)
 	case ']':
-		token = newToken(RBRACKET, l.ch)
+		tok = newToken(token.RBRACKET, l.ch)
 	case ':':
-		token = newToken(COLON, l.ch)
+		tok = newToken(token.COLON, l.ch)
 	case 0:
-		token.Literal = ""
-		token.Type = EOF
+		tok.Literal = ""
+		tok.Type = token.EOF
 	default:
 		if isLetter(l.ch) {
-			token.Literal = l.readIdentifier()
-			token.Type = LookupIdent(token.Literal)
-			return token
+			tok.Literal = l.readIdentifier()    // First we read the identifier
+			tok.Type = LookupIdent(tok.Literal) // Then we lookup if it's a keyword or an identifier
+			return tok
 		} else if isDigit(l.ch) {
-			token.Type = INT
-			token.Literal = l.readNumber()
-			return token
+			tok.Type = token.INT
+			tok.Literal = l.readNumber()
+			return tok
 		} else {
-			token = newToken(ILLEGAL, l.ch)
+			tok = newToken(token.ILLEGAL, l.ch)
 		}
 	}
 
 	l.readChar()
 
-	return token
+	return tok
 }
 
 func (l *Lexer) readNumber() string {
@@ -130,6 +142,10 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[position:l.position]
 }
 
+func newToken(tokenType token.TokenType, ch byte) token.Token {
+	return token.Token{Type: tokenType, Literal: string(ch)}
+}
+
 func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
 }
@@ -138,11 +154,11 @@ func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
-func LookupIdent(ident string) TokenType {
+func LookupIdent(ident string) token.TokenType {
 	if token, ok := keywords[ident]; ok {
 		return token
 	}
-	return IDENT
+	return token.IDENT
 }
 
 func (l *Lexer) readString() string {

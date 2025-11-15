@@ -1,10 +1,12 @@
-package main
+package object
 
 import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
 	"strings"
+
+	"monkey/ast"
 )
 
 type (
@@ -64,8 +66,8 @@ func (e *Error) Type() ObjectType { return ERROR_OBJ }
 func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 
 type Function struct {
-	Parameters []*Identifier
-	Body       *BlockStatement
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
 	Env        *Environment
 }
 
