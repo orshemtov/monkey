@@ -43,7 +43,7 @@ type Parser struct {
 	infixParseFns  map[token.TokenType]infixParseFn
 }
 
-func NewParser(l *lexer.Lexer) *Parser {
+func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l:      l,
 		errors: []string{},
