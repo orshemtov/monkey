@@ -162,14 +162,14 @@ func (oe *InfixExpression) String() string {
 	return out.String()
 }
 
-type BooleanExpression struct {
+type Boolean struct {
 	Token token.Token
 	Value bool
 }
 
-func (be *BooleanExpression) expressionNode()      {}
-func (be *BooleanExpression) TokenLiteral() string { return be.Token.Literal }
-func (be *BooleanExpression) String() string       { return be.Token.Literal }
+func (be *Boolean) expressionNode()      {}
+func (be *Boolean) TokenLiteral() string { return be.Token.Literal }
+func (be *Boolean) String() string       { return be.Token.Literal }
 
 type IfExpression struct {
 	Token       token.Token // The 'if' token
