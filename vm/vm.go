@@ -34,6 +34,12 @@ func (vm *VM) StackTop() object.Object {
 	return vm.stack[vm.sp-1]
 }
 
+// LastPoppedStackElem returns the last element that was popped from the stack.
+// it is useful for testing purposes.
+func (vm *VM) LastPoppedStackElem() object.Object {
+	return vm.stack[vm.sp]
+}
+
 func (vm *VM) Run() error {
 	for ip := 0; ip < len(vm.instructions); ip++ {
 		op := code.Opcode(vm.instructions[ip])
@@ -53,6 +59,8 @@ func (vm *VM) Run() error {
 
 			result := leftValue + rightValue
 			_ = vm.push(&object.Integer{Value: result})
+		case code.OpPop:
+			vm.pop()
 		}
 	}
 
