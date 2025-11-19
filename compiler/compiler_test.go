@@ -288,7 +288,7 @@ func TestConditionals(t *testing.T) {
 				// 0007
 				code.Make(code.OpJump, 11),
 				// 0010
-				// code.Make(code.OpNull),
+				code.Make(code.OpNull),
 				// 0011
 				code.Make(code.OpPop),
 				// 0012
