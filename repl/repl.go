@@ -19,8 +19,11 @@ const PROMPT = ">> "
 func StartCompiled(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
-	for {
+	constants := []object.Object{}
+	globals := make([]object.Object, vm.GlobalsSize)
+	symbolTable := compiler.NewSymbolTable()
 
+	for {
 		fmt.Print(PROMPT)
 		scanned := scanner.Scan()
 		if !scanned {
@@ -42,14 +45,17 @@ func StartCompiled(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Compilation failed:\n %s\n", err)
 			continue
 		}
 
-		machine := vm.New(comp.Bytecode())
+		bytecode := comp.Bytecode()
+		constants = bytecode.Constants
+
+		machine := vm.NewWithGlobalsStore(bytecode, globals)
 		err = machine.Run()
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Executation failed:\n %s\n", err)
