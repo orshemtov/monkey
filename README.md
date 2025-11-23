@@ -13,10 +13,10 @@ And expanded with features from the follow-up book "Writing A Compiler In Go".
 - Tokens
 - Lexer
 - Parser
-- AST (Abstract Syntax Tree)
+- `AST` (Abstract Syntax Tree)
 - Object system
 - Evaluator
-- REPL
+- `REPL`
 
 And extended with:
 
